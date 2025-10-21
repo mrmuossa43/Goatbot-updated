@@ -1,69 +1,67 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
+const fs = require("fs-extra");
+const moment = require("moment-timezone");
 
 module.exports = {
   config: {
-    name: "4k",
-    aliases: ["remini"],
-    version: "1.2",
-    author: "nexo_here",
-    countDown: 5,
-    role: 0,
-    shortDescription: "Upscale image to 4K",
-    longDescription: "Upscale an image using smfahim.xyz",
-    category: "image",
-    guide: {
-      en: "{pn} [url] or reply to an image"
-    },
-    usePrefix: true
+    name: "ميكو",
+    version: "1.0.1",
+    author: "S H A D O W",
+    category: "chat",
+    shortDescription: "رد تلقائي مثل ميكو القديم"
   },
 
-  onStart: async function ({ api, event, args }) {
-    let url = null;
+  onChat: async function ({ event, message, usersData }) {
+    if (!event.body) return;
+    const text = event.body.toLowerCase();
+    const name = await usersData.getName(event.senderID);
+    const time = moment.tz("Africa/Cairo").format("HH:mm:ss L");
 
-    // ✅ If user replied to an image
-    if (event.messageReply?.attachments?.[0]?.type === "photo") {
-      url = event.messageReply.attachments[0].url;
-    }
+    const tl = ["نعم", "شن تبي", "منو ينادي 🤍", "فوتني", "عيونها💙"];
+    const rand = tl[Math.floor(Math.random() * tl.length)];
 
-    // ✅ Or used direct image URL
-    if (!url && args[0]?.startsWith("http")) {
-      url = args[0];
-    }
+    if (["زبر", "زب"].includes(text))
+      return message.reply("️لا تسب يشلال");
 
-    // ❌ If no valid image source
-    if (!url) {
-      return api.sendMessage("❌ Reply to an image or provide a direct image URL.", event.threadID, event.messageID);
-    }
+    if (["احبك", "بحبك"].includes(text))
+      return message.reply("️موسى حبيبي الوحيد يولد");
 
-    try {
-      api.setMessageReaction("🔄", event.messageID, () => {}, true);
+    if (["زكمك", "كسمك"].includes(text))
+      return message.reply("️لا تسب");
 
-      const res = await axios.get(`https://smfahim.xyz/4k?url=${encodeURIComponent(url)}`);
-      if (!res.data?.status || !res.data?.image) {
-        api.setMessageReaction("❌", event.messageID, () => {}, true);
-        return api.sendMessage("⚠️ Upscaling failed. Try another image.", event.threadID, event.messageID);
-      }
+    if (["كيوت", "كيوتت"].includes(text))
+      return message.reply("️يعمريييي🤧💞");
 
-      const img = await axios.get(res.data.image, { responseType: "arraybuffer" });
-      const imgPath = path.join(__dirname, "cache", `${event.senderID}_4k.jpg`);
-      fs.writeFileSync(imgPath, Buffer.from(img.data, "binary"));
+    if (["شسمك", "ايش هو اسمك"].includes(text))
+      return message.reply("️ميكو عمتك");
 
-      api.sendMessage(
-        { attachment: fs.createReadStream(imgPath) },
-        event.threadID,
-        () => {
-          fs.unlinkSync(imgPath);
-          api.setMessageReaction("✅", event.messageID, () => {}, true);
-        },
-        event.messageID
-      );
+    if (["كيفكم", "كيفك"].includes(text))
+      return message.reply("️بخير وانت👀");
 
-    } catch (err) {
-      console.error("[4k] Error:", err.message);
-      api.setMessageReaction("❌", event.messageID, () => {}, true);
-      api.sendMessage("❌ Error occurred while processing image.", event.threadID, event.messageID);
-    }
+    if (["السلام عليكم", "سلام عليكم"].includes(text))
+      return message.reply("️وعليكم السلام ورحمه الله وبركاته");
+
+    if (["جيت", "سلام"].includes(text))
+      return message.reply("️منور");
+
+    if (["طرد", "الطرد"].includes(text))
+      return message.reply("️اطرد الزب");
+
+    if (["كيفها حياتك", "كيف حياتك"].includes(text))
+      return message.reply("️ماشيا الحمد لله وانت ❤️");
+
+    if (["ماشيا", "بخير الحمد لله"].includes(text))
+      return message.reply("️دومك بخير وصحه وسعاده");
+
+    if (["بوت", "يا بوت"].includes(text))
+      return message.reply("️اسمي ميكو معش تعاودها");
+
+    if (["جييتت", "باااكك"].includes(text))
+      return message.reply("️نورت البيت🫣❤");
+
+    if (["المطور", "من المطور"].includes(text))
+      return message.reply("https://www.facebook.com/profile.php?id=100034682431522");
+
+    if (text.startsWith("كيوتتي") || text.startsWith("ميكو"))
+      return message.reply(rand);
   }
 };
