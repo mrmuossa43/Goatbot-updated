@@ -1,76 +1,67 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
+const fs = require("fs-extra");
+const moment = require("moment-timezone");
 
 module.exports = {
   config: {
-    name: "gay",
-    aliases: [],
-    version: "1.6",
-    author: "NeoKEX",
-    countDown: 2,
-    role: 0,
-    description: "Generate a gay image with two user IDs.",
-    category: "fun",
-    guide: {
-      en: "{pn} @mention @mention\nOr {pn} @mention\nOr reply to a message."
-    }
+    name: "ميكو",
+    version: "1.0.1",
+    author: "S H A D O W",
+    category: "chat",
+    shortDescription: "رد تلقائي مثل ميكو القديم"
   },
 
-  onStart: async function ({ api, event }) {
-    try {
-      const mentions = Object.keys(event.mentions || {});
-      let uid1, uid2;
-      let uid1Name, uid2Name;
+  onStart: async function ({ event, message, usersData }) {
+    if (!event.body) return;
+    const text = event.body.toLowerCase();
+    const name = await usersData.getName(event.senderID);
+    const time = moment.tz("Africa/Cairo").format("HH:mm:ss L");
 
-      // Case 1: Two or more mentions
-      if (mentions.length >= 2) {
-        uid1 = mentions[0];
-        uid2 = mentions[1];
-        uid1Name = event.mentions[uid1];
-        uid2Name = event.mentions[uid2];
-      }
-      // Case 2: One mention
-      else if (mentions.length === 1) {
-        uid1 = event.senderID;
-        uid2 = mentions[0];
-        const userInfo = await api.getUserInfo(uid1);
-        uid1Name = userInfo[uid1]?.name || "User";
-        uid2Name = event.mentions[uid2];
-      }
-      // Case 3: Reply to a message
-      else if (event.messageReply) {
-        uid1 = event.senderID;
-        uid2 = event.messageReply.senderID;
-        const userInfo = await api.getUserInfo([uid1, uid2]);
-        uid1Name = userInfo[uid1]?.name || "User";
-        uid2Name = userInfo[uid2]?.name || "User";
-      }
-      // Case 4: No mention or reply
-      else {
-        return api.sendMessage("Please reply to a message or mention one or two users.", event.threadID, event.messageID);
-      }
-      
-      const url = `https://neokex-apis.onrender.com/gay?uid1=${uid1}&uid2=${uid2}`;
-      const response = await axios.get(url, { responseType: 'arraybuffer' });
-      const filePath = path.join(__dirname, "cache", `gay_${uid1}_${uid2}.jpg`);
-      fs.writeFileSync(filePath, Buffer.from(response.data, "binary"));
+    const tl = ["نعم", "شن تبي", "منو ينادي 🤍", "فوتني", "عيونها💙"];
+    const rand = tl[Math.floor(Math.random() * tl.length)];
 
-      const messageBody = `Oh yeah ${uid1Name} 💋 ${uid2Name}`;
-      const messageMentions = [
-        { tag: uid1Name, id: uid1 },
-        { tag: uid2Name, id: uid2 }
-      ];
+    if (["زبر", "زب"].includes(text))
+      return message.reply("️لا تسب يشلال");
 
-      api.sendMessage({
-        body: messageBody,
-        attachment: fs.createReadStream(filePath),
-        mentions: messageMentions
-      }, event.threadID, () => fs.unlinkSync(filePath), event.messageID);
+    if (["احبك", "بحبك"].includes(text))
+      return message.reply("️موسى حبيبي الوحيد يولد");
 
-    } catch (e) {
-      console.error("Error:", e.message);
-      api.sendMessage("❌ Couldn't generate image. Try again later.", event.threadID, event.messageID);
-    }
+    if (["زكمك", "كسمك"].includes(text))
+      return message.reply("️لا تسب");
+
+    if (["كيوت", "كيوتت"].includes(text))
+      return message.reply("️يعمريييي🤧💞");
+
+    if (["شسمك", "ايش هو اسمك"].includes(text))
+      return message.reply("️ميكو عمتك");
+
+    if (["كيفكم", "كيفك"].includes(text))
+      return message.reply("️بخير وانت👀");
+
+    if (["السلام عليكم", "سلام عليكم"].includes(text))
+      return message.reply("️وعليكم السلام ورحمه الله وبركاته");
+
+    if (["جيت", "سلام"].includes(text))
+      return message.reply("️منور");
+
+    if (["طرد", "الطرد"].includes(text))
+      return message.reply("️اطرد الزب");
+
+    if (["كيفها حياتك", "كيف حياتك"].includes(text))
+      return message.reply("️ماشيا الحمد لله وانت ❤️");
+
+    if (["ماشيا", "بخير الحمد لله"].includes(text))
+      return message.reply("️دومك بخير وصحه وسعاده");
+
+    if (["بوت", "يا بوت"].includes(text))
+      return message.reply("️اسمي ميكو معش تعاودها");
+
+    if (["جييتت", "باااكك"].includes(text))
+      return message.reply("️نورت البيت🫣❤");
+
+    if (["المطور", "من المطور"].includes(text))
+      return message.reply("https://www.facebook.com/profile.php?id=100034682431522");
+
+    if (text.startsWith("كيوتتي") || text.startsWith("ميكو"))
+      return message.reply(rand);
   }
 };
