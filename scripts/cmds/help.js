@@ -1,149 +1,169 @@
-const fs = require("fs-extra");
-const path = require("path");
-const https = require("https");
-
-module.exports = {
-  config: {
-    name: "help",
-    aliases: ["menu", "commands"],
-    version: "4.8",
-    author: "NeoKEX",
-    shortDescription: "Show all available commands",
-    longDescription: "Displays a clean and premium-styled categorized list of commands.",
-    category: "system",
-    guide: "{pn}help [command name]"
-  },
-
-  onStart: async function ({ message, args, prefix }) {
-    const allCommands = global.GoatBot.commands;
-    const categories = {};
-
-    const emojiMap = {
-      ai: "➥", "ai-image": "➥", group: "➥", system: "➥",
-      fun: "➥", owner: "➥", config: "➥", economy: "➥",
-      media: "➥", "18+": "➥", tools: "➥", utility: "➥",
-      info: "➥", image: "➥", game: "➥", admin: "➥",
-      rank: "➥", boxchat: "➥", others: "➥"
-    };
-
-    const cleanCategoryName = (text) => {
-      if (!text) return "others";
-      return text
-        .normalize("NFKD")
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase();
-    };
-
-    // Group commands by category
-    for (const [name, cmd] of allCommands) {
-      const cat = cleanCategoryName(cmd.config.category);
-      if (!categories[cat]) categories[cat] = [];
-      categories[cat].push(cmd.config.name);
-    }
-
-    // GIF URLs
-    const gifURLs = [
-      "https://i.imgur.com/ejqdK51.gif",
-      "https://i.imgur.com/ltIztKe.gif",
-      "https://i.imgur.com/5oqrQ0i.gif",
-      "https://i.imgur.com/qf2aZH8.gif",
-      "https://i.imgur.com/3QzYyye.gif",
-      "https://i.imgur.com/ffxzucB.gif",
-      "https://i.imgur.com/3QSsSzA.gif",
-      "https://i.imgur.com/Ih819LH.gif"
-    ];
-
-    // pick random gif
-    const randomGifURL = gifURLs[Math.floor(Math.random() * gifURLs.length)];
-    const gifFolder = path.join(__dirname, "cache");
-    if (!fs.existsSync(gifFolder)) fs.mkdirSync(gifFolder, { recursive: true });
-    const gifName = path.basename(randomGifURL);
-    const gifPath = path.join(gifFolder, gifName);
-
-    // download if not exists
-    if (!fs.existsSync(gifPath)) {
-      await downloadGif(randomGifURL, gifPath);
-    }
-
-    // Single command detail
-    if (args[0]) {
-      const query = args[0].toLowerCase();
-      const cmd =
-        allCommands.get(query) ||
-        [...allCommands.values()].find((c) => (c.config.aliases || []).includes(query));
-      if (!cmd) return message.reply(`❌ Command "${query}" not found.`);
-
-      const {
-        name,
-        version,
-        author,
-        guide,
-        category,
-        shortDescription,
-        longDescription,
-        aliases
-      } = cmd.config;
-
-      const desc =
-        typeof longDescription === "string"
-          ? longDescription
-          : longDescription?.en || shortDescription?.en || shortDescription || "No description";
-
-      const usage =
-        typeof guide === "string"
-          ? guide.replace(/{pn}/g, prefix)
-          : guide?.en?.replace(/{pn}/g, prefix) || `${prefix}${name}`;
-
-      return message.reply({
-        body:
-          `☠️ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢 ☠️\n\n` +
-          `➥ Name: ${name}\n` +
-          `➥ Category: ${category || "Uncategorized"}\n` +
-          `➥ Description: ${desc}\n` +
-          `➥ Aliases: ${aliases?.length ? aliases.join(", ") : "None"}\n` +
-          `➥ Usage: ${usage}\n` +
-          `➥ Author: ${author || "Unknown"}\n` +
-          `➥ Version: ${version || "1.0"}`,
-        attachment: fs.createReadStream(gifPath)
-      });
-    }
-
-    // Format all commands
-    const formatCommands = (cmds) =>
-      cmds.sort().map((cmd) => `│ ∘ ${cmd}`).join("\n");
-
-    let msg = `╭━ 🎯 𝑪𝑶𝑴𝑴𝑨𝑵𝑫𝑺 ━╮\n`;
-    const sortedCategories = Object.keys(categories).sort();
-    for (const cat of sortedCategories) {
-      const emoji = emojiMap[cat] || "➥";
-      msg += `\n${emoji} ${cat.toUpperCase()}\n`;
-      msg += `${formatCommands(categories[cat])}\n`;
-    }
-    msg += `\n╰➤ Use: ${prefix}help [command name] for details`;
-
-    return message.reply({
-      body: msg,
-      attachment: fs.createReadStream(gifPath)
-    });
-  }
+module.exports.config = {
+	name: "الاوامر",
+	version: "1.0.0",
+	hasPermssion: 0,
+  credits: "S H A D O W",
+	description: "اوامر البوت",
+	usages: "الاوامر",
+  commandCategory: "الــــجـــروب", 
+	cooldowns: 5
 };
 
-// helper to download GIF
-function downloadGif(url, dest) {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    https.get(url, (res) => {
-      if (res.statusCode !== 200) {
-        fs.unlink(dest, () => {});
-        return reject(new Error(`Failed to download '${url}' (${res.statusCode})`));
-      }
-      res.pipe(file);
-      file.on("finish", () => file.close(resolve));
-    }).on("error", (err) => {
-      fs.unlink(dest, () => {});
-      reject(err);
-    });
-  });
+module.exports.handleReply = async function ({ api, event, handleReply }) {
+	let num = parseInt(event.body.split(" ")[0].trim());
+	(handleReply.bonus) ? num -= handleReply.bonus : num;
+	let msg = "";
+	let data = handleReply.content;
+	let check = false;
+	if (isNaN(num)) msg = "رد علي الرساله برقم العنوان لاظهار الاوامر";
+	else if (num > data.length || num <= 0) msg = "ياغبي الرقم الي اخترته مش في المنيو اصلا 😂😂";
+	else {
+		const { commands } = global.client;
+		let dataAfter = data[num-=1];
+		if (handleReply.type == "cmd_info") {
+			let command_config = commands.get(dataAfter).config;
+			msg += ` 『  ${command_config.commandCategory.toUpperCase()}   』   \n`;
+			msg += `\n⌯ اســم الــامــر: ${dataAfter}`;
+			msg += `\n⌯ الــوصــف: ${command_config.description}`;
+			msg += `\n⌯ الــاســتــخــدام: ${(command_config.usages) ? command_config.usages : ""}`;
+			msg += `\n⌯ الــانـتـظـار: ${command_config.cooldowns || 5} ثانيه`;
+			msg += `\n⌯ الــمـستـخـدمـيـن : ${(command_config.hasPermssion == 0) ? "مستخدم" : (command_config.hasPermssion == 1) ? "Group administrator" : "Bot admin"}`;
+      msg += `\n✎﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏`
+			msg += `\n\n https://www.facebook.com/profile.php?id=100034682431522 ↞`;
+		} else {
+			check = true;
+			let count = 0;
+			msg += `» ${dataAfter.group.toUpperCase()} «\n`;
+
+			dataAfter.cmds.forEach(item => {
+				msg += `\n ${count+=1}. ↞ ${item}: ${commands.get(item).config.description}`;
+			})
+		}
+	}
+	const axios = require('axios');
+	const fs = require('fs-extra');
+	const img = ["https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png",
+""]
+	var path = __dirname + "/cache/menu.jpg"
+	var rdimg = img[Math.floor(Math.random() * img.length)]; 
+	const imgP = []
+	let dowloadIMG = (await axios.get(rdimg, { responseType: "arraybuffer" } )).data; 
+	fs.writeFileSync(path, Buffer.from(dowloadIMG, "utf-8") );
+	imgP.push(fs.createReadStream(path))
+	var msgg = {body: msg, attachment: imgP}
+	api.unsendMessage(handleReply.messageID);
+	return api.sendMessage(msgg, event.threadID, (error, info) => {
+		if (error) console.log(error);
+		if (check) {
+			global.client.handleReply.push({
+				type: "cmd_info",
+				name: this.config.name,
+				messageID: info.messageID,
+				content: data[num].cmds
+			})
+		}
+	}, event.messageID);
 }
+
+module.exports.run = async function({ api, event, args }) {
+	const { commands } = global.client;
+	const { threadID, messageID } = event;
+	const threadSetting = global.data.threadData.get(parseInt(threadID)) || {};
+	const prefix = (threadSetting.hasOwnProperty("PREFIX")) ? threadSetting.PREFIX : global.config.PREFIX;
+	const axios = require('axios');
+	const fs = require('fs-extra');
+	const imgP = []
+	const img = [""
+, "https://i.postimg.cc/TwR8nnqZ/1.png"
+, "https://i.postimg.cc/TwR8nnqZ/1.png"
+, "https://i.postimg.cc/TwR8nnqZ/1.png"
+, "https://i.postimg.cc/TwR8nnqZ/1.png"
+, "https://i.postimg.cc/TwR8nnqZ/1.png"
+, "https://i.postimg.cc/TwR8nnqZ/1.png"
+, "https://i.postimg.cc/TwR8nnqZ/1.png"
+, "https://i.postimg.cc/TwR8nnqZ/1.png"
+, "https://i.postimg.cc/TwR8nnqZ/1.png"
+, "https://i.postimg.cc/TwR8nnqZ/1.png"]
+	var path = __dirname + "/cache/menu.jpg"
+	var rdimg = img[Math.floor(Math.random() * img.length)]; 
+
+   	let dowloadIMG = (await axios.get(rdimg, { responseType: "arraybuffer" } )).data; 
+        fs.writeFileSync(path, Buffer.from(dowloadIMG, "utf-8") );
+        imgP.push(fs.createReadStream(path))
+	const command = commands.values();
+	var group = [], msg = "⌯\n 【قــائــمــة الــاوامــر】\n⌯\n";
+	let check = true, page_num_input = "";
+	let bonus = 0;
+
+	for (const commandConfig of command) {
+		if (!group.some(item => item.group.toLowerCase() == commandConfig.config.commandCategory.toLowerCase())) group.push({ group: commandConfig.config.commandCategory.toLowerCase(), cmds: [commandConfig.config.name] });
+		else group.find(item => item.group.toLowerCase() == commandConfig.config.commandCategory.toLowerCase()).cmds.push(commandConfig.config.name);
+	}
+
+	if (args[0] && ["all", "-a"].includes(args[0].trim())) {
+		let all_commands = [];
+		group.forEach(commandGroup => {
+			commandGroup.cmds.forEach(item => all_commands.push(item));
+		});
+		let page_num_total = Math.ceil(all_commands.length / 2222222222);
+		if (args[1]) {
+			check = false;
+			page_num_input = parseInt(args[1]);
+			if (isNaN(page_num_input)) msg = "رد علي الرساله برقم العنوان لاظهار الاوامر";
+			else if (page_num_input > page_num_total || page_num_input <= 0) msg = "ياغبي الرقم الي اخترته مش في المنيو اصلا 😂😂";
+			else check = true;
+		}
+		if (check) {
+		index_start = (page_num_input) ? (page_num_input * 2222222222) - 2222222222 : 0;
+			bonus = index_start;
+			index_end = (index_start + 2222222222 > all_commands.length) ? all_commands.length : index_start + 2222222222;
+			all_commands = all_commands.slice(index_start, index_end);
+			all_commands.forEach(e => {
+				msg += `\n${index_start+=1}. » ${e}: ${commands.get(e).config.description}`;
+			})
+			msg += `\n\n⌯ الــصــفــحــه ${page_num_input || 1}/${page_num_total}`;
+			msg +=``
+			msg += "\n\n\n.\n\n \n";
+		}
+		var msgg = {body: msg, attachment: imgP}
+		return api.sendMessage(msgg, threadID, (error, info) => {
+			if (check) {
+				global.client.handleReply.push({
+					type: "cmd_info",
+					bonus: bonus,
+					name: this.config.name,
+					messageID: info.messageID,
+					content: all_commands
+				})
+			}
+		}, messageID)
+	}
+
+	let page_num_total = Math.ceil(group.length / 2222222222);
+	if (args[0]) {
+		check = false;
+		page_num_input = parseInt(args[0]);
+		if (isNaN(page_num_input)) msg = "رد علي الرساله برقم العنوان لاظهار الاوامر";
+		else if (page_num_input > page_num_total || page_num_input <= 0) msg = "ياغبي الرقم الي اخترته مش في المنيو اصلا 😂😂";
+		else check = true;
+	}
+	if (check) {
+		index_start = (page_num_input) ? (page_num_input * 2222222222) - 2222222222 : 0;
+		bonus = index_start;
+		index_end = (index_start + 2222222222 > group.length) ? group.length : index_start + 2222222222;
+		group = group.slice(index_start, index_end);
+		group.forEach(commandGroup => msg += `\n${index_start+=1}. » ${commandGroup.group.toUpperCase()} `);
+		msg += `\n\n⌯ الــصــفــحــه【${page_num_input || 1}/${page_num_total}】`;
+		msg +=``
+		msg += `\n\n\n\n\n\n`;
+	}
+	var msgg = {body: msg, attachment: imgP}
+	return api.sendMessage(msgg, threadID, async (error, info) => {
+		global.client.handleReply.push({
+			name: this.config.name,
+			bonus: bonus,
+			messageID: info.messageID,
+			content: group
+		})
+	});
+    }
