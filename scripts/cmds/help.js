@@ -1,169 +1,131 @@
-module.exports.config = {
-	name: "الاوامر",
-	version: "1.0.0",
-	hasPermssion: 0,
-  credits: "S H A D O W",
-	description: "اوامر البوت",
-	usages: "الاوامر",
-  commandCategory: "الــــجـــروب", 
-	cooldowns: 5
-};
+const fs = require("fs-extra");
+const axios = require("axios");
+const path = require("path");
 
-module.exports.handleReply = async function ({ api, event, handleReply }) {
-	let num = parseInt(event.body.split(" ")[0].trim());
-	(handleReply.bonus) ? num -= handleReply.bonus : num;
-	let msg = "";
-	let data = handleReply.content;
-	let check = false;
-	if (isNaN(num)) msg = "رد علي الرساله برقم العنوان لاظهار الاوامر";
-	else if (num > data.length || num <= 0) msg = "ياغبي الرقم الي اخترته مش في المنيو اصلا 😂😂";
-	else {
-		const { commands } = global.client;
-		let dataAfter = data[num-=1];
-		if (handleReply.type == "cmd_info") {
-			let command_config = commands.get(dataAfter).config;
-			msg += ` 『  ${command_config.commandCategory.toUpperCase()}   』   \n`;
-			msg += `\n⌯ اســم الــامــر: ${dataAfter}`;
-			msg += `\n⌯ الــوصــف: ${command_config.description}`;
-			msg += `\n⌯ الــاســتــخــدام: ${(command_config.usages) ? command_config.usages : ""}`;
-			msg += `\n⌯ الــانـتـظـار: ${command_config.cooldowns || 5} ثانيه`;
-			msg += `\n⌯ الــمـستـخـدمـيـن : ${(command_config.hasPermssion == 0) ? "مستخدم" : (command_config.hasPermssion == 1) ? "Group administrator" : "Bot admin"}`;
-      msg += `\n✎﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏`
-			msg += `\n\n https://www.facebook.com/profile.php?id=100034682431522 ↞`;
-		} else {
-			check = true;
-			let count = 0;
-			msg += `» ${dataAfter.group.toUpperCase()} «\n`;
+module.exports = {
+  config: {
+    name: "الاوامر",
+    version: "1.0.1",
+    author: "S H A D O W / تعديل دعم GoatBot بواسطة ChatGPT",
+    category: "الــــجـــروب",
+    shortDescription: "اوامر البوت",
+    longDescription: "يعرض قائمة الأوامر بشكل منسق بالعربية",
+    guide: "{pn}الاوامر"
+  },
 
-			dataAfter.cmds.forEach(item => {
-				msg += `\n ${count+=1}. ↞ ${item}: ${commands.get(item).config.description}`;
-			})
-		}
-	}
-	const axios = require('axios');
-	const fs = require('fs-extra');
-	const img = ["https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png", "https://i.postimg.cc/TwR8nnqZ/1.png",
-""]
-	var path = __dirname + "/cache/menu.jpg"
-	var rdimg = img[Math.floor(Math.random() * img.length)]; 
-	const imgP = []
-	let dowloadIMG = (await axios.get(rdimg, { responseType: "arraybuffer" } )).data; 
-	fs.writeFileSync(path, Buffer.from(dowloadIMG, "utf-8") );
-	imgP.push(fs.createReadStream(path))
-	var msgg = {body: msg, attachment: imgP}
-	api.unsendMessage(handleReply.messageID);
-	return api.sendMessage(msgg, event.threadID, (error, info) => {
-		if (error) console.log(error);
-		if (check) {
-			global.client.handleReply.push({
-				type: "cmd_info",
-				name: this.config.name,
-				messageID: info.messageID,
-				content: data[num].cmds
-			})
-		}
-	}, event.messageID);
-}
+  // 🧩 هذه الدالة تعمل عندما يرد المستخدم على رسالة البوت
+  onReply: async function ({ event, message, Reply }) {
+    try {
+      const num = parseInt(event.body.split(" ")[0].trim());
+      const data = Reply.content;
+      let msg = "";
+      let check = false;
 
-module.exports.run = async function({ api, event, args }) {
-	const { commands } = global.client;
-	const { threadID, messageID } = event;
-	const threadSetting = global.data.threadData.get(parseInt(threadID)) || {};
-	const prefix = (threadSetting.hasOwnProperty("PREFIX")) ? threadSetting.PREFIX : global.config.PREFIX;
-	const axios = require('axios');
-	const fs = require('fs-extra');
-	const imgP = []
-	const img = [""
-, "https://i.postimg.cc/TwR8nnqZ/1.png"
-, "https://i.postimg.cc/TwR8nnqZ/1.png"
-, "https://i.postimg.cc/TwR8nnqZ/1.png"
-, "https://i.postimg.cc/TwR8nnqZ/1.png"
-, "https://i.postimg.cc/TwR8nnqZ/1.png"
-, "https://i.postimg.cc/TwR8nnqZ/1.png"
-, "https://i.postimg.cc/TwR8nnqZ/1.png"
-, "https://i.postimg.cc/TwR8nnqZ/1.png"
-, "https://i.postimg.cc/TwR8nnqZ/1.png"
-, "https://i.postimg.cc/TwR8nnqZ/1.png"]
-	var path = __dirname + "/cache/menu.jpg"
-	var rdimg = img[Math.floor(Math.random() * img.length)]; 
+      if (isNaN(num)) return message.reply("رد على الرسالة برقم العنوان لعرض الأوامر");
+      if (num > data.length || num <= 0)
+        return message.reply("ياغبي الرقم الي اخترته مش في المنيو أصلاً 😂😂");
 
-   	let dowloadIMG = (await axios.get(rdimg, { responseType: "arraybuffer" } )).data; 
-        fs.writeFileSync(path, Buffer.from(dowloadIMG, "utf-8") );
-        imgP.push(fs.createReadStream(path))
-	const command = commands.values();
-	var group = [], msg = "⌯\n 【قــائــمــة الــاوامــر】\n⌯\n";
-	let check = true, page_num_input = "";
-	let bonus = 0;
+      const allCommands = global.GoatBot.commands;
+      let dataAfter = data[num - 1];
 
-	for (const commandConfig of command) {
-		if (!group.some(item => item.group.toLowerCase() == commandConfig.config.commandCategory.toLowerCase())) group.push({ group: commandConfig.config.commandCategory.toLowerCase(), cmds: [commandConfig.config.name] });
-		else group.find(item => item.group.toLowerCase() == commandConfig.config.commandCategory.toLowerCase()).cmds.push(commandConfig.config.name);
-	}
+      if (Reply.type == "cmd_info") {
+        const commandConfig = allCommands.get(dataAfter).config;
+        msg += ` 『  ${commandConfig.category?.toUpperCase() || "غير محدد"}   』\n`;
+        msg += `\n⌯ اســم الــأمــر: ${dataAfter}`;
+        msg += `\n⌯ الــوصــف: ${commandConfig.longDescription || commandConfig.shortDescription || "لا يوجد وصف"}`;
+        msg += `\n⌯ الــاســتــخــدام: ${(commandConfig.guide) ? commandConfig.guide : ""}`;
+        msg += `\n⌯ الإصدار: ${commandConfig.version || "1.0"}`;
+        msg += `\n⌯ المــؤلــف: ${commandConfig.author || "مجهول"}`;
+        msg += `\n✎﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏`;
+        msg += `\n\nhttps://www.facebook.com/profile.php?id=100034682431522 ↞`;
+      } else {
+        check = true;
+        let count = 0;
+        msg += `» ${dataAfter.group.toUpperCase()} «\n`;
+        dataAfter.cmds.forEach(item => {
+          const cmdDesc = allCommands.get(item)?.config.shortDescription || "بدون وصف";
+          msg += `\n ${++count}. ↞ ${item}: ${cmdDesc}`;
+        });
+      }
 
-	if (args[0] && ["all", "-a"].includes(args[0].trim())) {
-		let all_commands = [];
-		group.forEach(commandGroup => {
-			commandGroup.cmds.forEach(item => all_commands.push(item));
-		});
-		let page_num_total = Math.ceil(all_commands.length / 2222222222);
-		if (args[1]) {
-			check = false;
-			page_num_input = parseInt(args[1]);
-			if (isNaN(page_num_input)) msg = "رد علي الرساله برقم العنوان لاظهار الاوامر";
-			else if (page_num_input > page_num_total || page_num_input <= 0) msg = "ياغبي الرقم الي اخترته مش في المنيو اصلا 😂😂";
-			else check = true;
-		}
-		if (check) {
-		index_start = (page_num_input) ? (page_num_input * 2222222222) - 2222222222 : 0;
-			bonus = index_start;
-			index_end = (index_start + 2222222222 > all_commands.length) ? all_commands.length : index_start + 2222222222;
-			all_commands = all_commands.slice(index_start, index_end);
-			all_commands.forEach(e => {
-				msg += `\n${index_start+=1}. » ${e}: ${commands.get(e).config.description}`;
-			})
-			msg += `\n\n⌯ الــصــفــحــه ${page_num_input || 1}/${page_num_total}`;
-			msg +=``
-			msg += "\n\n\n.\n\n \n";
-		}
-		var msgg = {body: msg, attachment: imgP}
-		return api.sendMessage(msgg, threadID, (error, info) => {
-			if (check) {
-				global.client.handleReply.push({
-					type: "cmd_info",
-					bonus: bonus,
-					name: this.config.name,
-					messageID: info.messageID,
-					content: all_commands
-				})
-			}
-		}, messageID)
-	}
+      const imgLinks = [
+        "https://i.postimg.cc/TwR8nnqZ/1.png"
+      ];
+      const imgPath = path.join(__dirname, "cache", "menu.jpg");
+      const rdimg = imgLinks[Math.floor(Math.random() * imgLinks.length)];
+      const imgBuffer = (await axios.get(rdimg, { responseType: "arraybuffer" })).data;
+      fs.ensureDirSync(path.join(__dirname, "cache"));
+      fs.writeFileSync(imgPath, Buffer.from(imgBuffer, "utf-8"));
 
-	let page_num_total = Math.ceil(group.length / 2222222222);
-	if (args[0]) {
-		check = false;
-		page_num_input = parseInt(args[0]);
-		if (isNaN(page_num_input)) msg = "رد علي الرساله برقم العنوان لاظهار الاوامر";
-		else if (page_num_input > page_num_total || page_num_input <= 0) msg = "ياغبي الرقم الي اخترته مش في المنيو اصلا 😂😂";
-		else check = true;
-	}
-	if (check) {
-		index_start = (page_num_input) ? (page_num_input * 2222222222) - 2222222222 : 0;
-		bonus = index_start;
-		index_end = (index_start + 2222222222 > group.length) ? group.length : index_start + 2222222222;
-		group = group.slice(index_start, index_end);
-		group.forEach(commandGroup => msg += `\n${index_start+=1}. » ${commandGroup.group.toUpperCase()} `);
-		msg += `\n\n⌯ الــصــفــحــه【${page_num_input || 1}/${page_num_total}】`;
-		msg +=``
-		msg += `\n\n\n\n\n\n`;
-	}
-	var msgg = {body: msg, attachment: imgP}
-	return api.sendMessage(msgg, threadID, async (error, info) => {
-		global.client.handleReply.push({
-			name: this.config.name,
-			bonus: bonus,
-			messageID: info.messageID,
-			content: group
-		})
-	});
+      await message.unsend(Reply.messageID);
+      await message.reply({
+        body: msg,
+        attachment: fs.createReadStream(imgPath)
+      }).then(info => {
+        if (check) {
+          global.GoatBot.onReply.set(info.messageID, {
+            type: "cmd_info",
+            name: module.exports.config.name,
+            messageID: info.messageID,
+            content: data[num - 1].cmds
+          });
+        }
+      });
+
+    } catch (err) {
+      console.error(err);
+      message.reply("حدث خطأ أثناء معالجة الأمر 😅");
     }
+  },
+
+  // 🧠 هذه الدالة الأساسية لتشغيل الأمر
+  onStart: async function ({ message, event, args }) {
+    try {
+      const allCommands = global.GoatBot.commands;
+      const threadID = event.threadID;
+      const prefix = global.GoatBot.config.prefix;
+
+      const imgLinks = [
+        "https://i.postimg.cc/TwR8nnqZ/1.png"
+      ];
+      const imgPath = path.join(__dirname, "cache", "menu.jpg");
+      const rdimg = imgLinks[Math.floor(Math.random() * imgLinks.length)];
+      const imgBuffer = (await axios.get(rdimg, { responseType: "arraybuffer" })).data;
+      fs.ensureDirSync(path.join(__dirname, "cache"));
+      fs.writeFileSync(imgPath, Buffer.from(imgBuffer, "utf-8"));
+
+      const groups = [];
+      for (const [name, cmd] of allCommands) {
+        const cat = (cmd.config.category || "أخرى").toLowerCase();
+        if (!groups.some(item => item.group.toLowerCase() === cat))
+          groups.push({ group: cat, cmds: [cmd.config.name] });
+        else
+          groups.find(item => item.group.toLowerCase() === cat).cmds.push(cmd.config.name);
+      }
+
+      let msg = "⌯\n 【قــائــمــة الــاوامــر】\n⌯\n";
+      let index = 0;
+
+      groups.forEach(group => {
+        msg += `\n${++index}. » ${group.group.toUpperCase()}`;
+      });
+
+      msg += `\n\n⌯ الــصــفــحــة 【1/1】\n`;
+
+      await message.reply({
+        body: msg,
+        attachment: fs.createReadStream(imgPath)
+      }).then(info => {
+        global.GoatBot.onReply.set(info.messageID, {
+          name: module.exports.config.name,
+          messageID: info.messageID,
+          content: groups
+        });
+      });
+
+    } catch (err) {
+      console.error(err);
+      message.reply("حدث خطأ أثناء عرض قائمة الأوامر 😅");
+    }
+  }
+};
